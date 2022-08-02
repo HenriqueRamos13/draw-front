@@ -41,12 +41,12 @@ const Card: React.FC<Props | any> = ({
     <div className="card md:w-2/3 w-full bg-base-100 shadow-xl m-4">
       <div className="card-body">
         {loading ? (
-          <progress className="progress w-56"></progress>
+          <progress className="progress progress-primary w-56"></progress>
         ) : (
           <h2 className="card-title">{title}</h2>
         )}
         {loading ? (
-          <progress className="progress w-2/4"></progress>
+          <progress className="progress progress-primary w-2/4"></progress>
         ) : (
           <p>
             {(() =>
@@ -56,21 +56,21 @@ const Card: React.FC<Props | any> = ({
           </p>
         )}
         {loading ? (
-          <progress className="progress w-3/4"></progress>
+          <progress className="progress progress-primary w-3/4"></progress>
         ) : (
           <b>
             Time remaining: {hours} hours and {minutes} minutes
           </b>
         )}
         {loading ? (
-          <progress className="progress w-56"></progress>
+          <progress className="progress progress-primary w-56"></progress>
         ) : (
           <b>Total votes: {votes}</b>
         )}
 
         <div className="card-actions justify-end">
           {loading ? (
-            <progress className="progress w-56"></progress>
+            <progress className="progress progress-primary w-56"></progress>
           ) : (
             <button
               className="btn btn-primary"

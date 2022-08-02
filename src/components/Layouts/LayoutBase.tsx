@@ -98,7 +98,7 @@ export default function LayoutBase() {
 
   return (
     <>
-      <div className="min-h-full">
+      <div className="min-h-full bg-gray-100 dark:bg-gray-700">
         <div className="bg-indigo-600 pb-32 dark:bg-gray-800">
           <Disclosure
             as="nav"
@@ -137,7 +137,7 @@ export default function LayoutBase() {
                       </div>
                     </div>
                     <div className="flex-1 px-2 flex justify-center lg:ml-6 lg:justify-end">
-                      <div className="max-w-lg w-full lg:max-w-xs">
+                      {/* <div className="max-w-lg w-full lg:max-w-xs">
                         <label htmlFor="search" className="sr-only">
                           Search
                         </label>
@@ -154,7 +154,7 @@ export default function LayoutBase() {
                             placeholder="Search"
                           />
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                     <div className="flex lg:hidden">
                       {/* Mobile menu button */}
@@ -314,8 +314,8 @@ export default function LayoutBase() {
           </header>
         </div>
 
-        <main className="-mt-32 bg-transparent">
-          <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8">
+        <main className="-mt-32 bg-none">
+          <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8 bg-none">
             {/* Replace with your content */}
 
             <Outlet />

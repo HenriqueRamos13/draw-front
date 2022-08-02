@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "react-query";
+import { useNavigate } from "react-router-dom";
 import { challengeAPI } from "../../../api/challenge.api";
 import Card from "../../../components/Card";
 import Cover from "../../../components/Cover";
@@ -9,15 +10,16 @@ import { OrderEnum } from "../../../utils/enums/order.enum";
 
 const Dashboard = () => {
   const [order, setOrder] = useState<OrderEnum>(OrderEnum.Votes_Desc);
-  const { data: dailyChallenge, error: dailyChallengeError } = useQuery(
-    "dailyChallenge",
-    challengeAPI.challengeOfTheDay,
-    {
-      refetchOnWindowFocus: true,
-      cacheTime: 1000 * 30,
-      staleTime: 1000 * 30,
-    }
-  );
+  const navigate = useNavigate();
+  const {
+    data: dailyChallenge,
+    error: dailyChallengeError,
+    isLoading: dailyChallengeLoading,
+  } = useQuery("dailyChallenge", challengeAPI.challengeOfTheDay, {
+    refetchOnWindowFocus: true,
+    cacheTime: 1000 * 30,
+    staleTime: 1000 * 30,
+  });
   const {
     data: challenges,
     error: challengesError,
@@ -39,11 +41,17 @@ const Dashboard = () => {
             {!dailyChallengeError && (
               <>
                 <article className="prose flex flex-col items-center mb-4">
-                  {dailyChallenge && <h2>{dailyChallenge.title}</h2>}
-                  {dailyChallenge && (
-                    <p className="text-center">{dailyChallenge.description}</p>
+                  {!dailyChallengeLoading ? (
+                    <h2>{dailyChallenge?.title}</h2>
+                  ) : (
+                    <progress className="progress progress-primary w-44 mb-12"></progress>
                   )}
-                  <b>Top 3 images</b>
+                  {!dailyChallengeLoading ? (
+                    <p className="text-center">{dailyChallenge?.description}</p>
+                  ) : (
+                    <progress className="progress progress-primary w-96 mb-12"></progress>
+                  )}
+                  {dailyChallenge && <b>Top 3 images</b>}
                 </article>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 justify-items-center">
                   {dailyChallenge &&
@@ -59,7 +67,20 @@ const Dashboard = () => {
                 </div>
               </>
             )}
-            <button className="btn btn-outline mt-8">Access Challenge</button>
+            {!dailyChallengeLoading && dailyChallenge ? (
+              <button
+                className="btn btn-outline mt-8"
+                onClick={() =>
+                  dailyChallenge
+                    ? navigate(`challenge/${dailyChallenge.id}`)
+                    : {}
+                }
+              >
+                Access Challenge
+              </button>
+            ) : (
+              <progress className="progress progress-primary w-48"></progress>
+            )}
           </div>
         </div>
       </Cover>
