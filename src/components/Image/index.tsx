@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeartIcon } from "@heroicons/react/solid";
 import { HeartIcon as HeartIconOutlined } from "@heroicons/react/outline";
@@ -7,18 +7,21 @@ import { API_URL } from "../../utils/api";
 import { useAuth } from "../../utils/context/auth";
 import { Image } from "../../utils/interfaces/models";
 
-const ImageComponent: React.FC<Image | any> = ({ url, id, votes, user }) => {
+const ImageComponent: React.FC<Image> = ({ url, id, votes, user }) => {
   const { isAuthenticated, likes, setLikes } = useAuth();
   const navigate = useNavigate();
 
-  const [liked, setLiked] = React.useState(false);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const liked = likes.find((item) => item === id);
     setLiked(!!liked);
-  }, []);
+  }, [likes]);
 
   const like = (id: string) => {
+    if (!isAuthenticated) {
+      return;
+    }
     setLiked(true);
     fetch(`${API_URL}/votes`, {
       method: "POST",
@@ -43,7 +46,7 @@ const ImageComponent: React.FC<Image | any> = ({ url, id, votes, user }) => {
       <figure>
         <img
           src={url}
-          alt="image-to-view"
+          alt="art"
           className="w-full h-full object-fill rounded-lg"
         />
       </figure>

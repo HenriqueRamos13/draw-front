@@ -17,16 +17,27 @@ interface LoginInterface {
 interface LoginResponseInterface extends ErrorInterface {
   user: User;
   expire: number;
-  menus: Menu[];
 }
 
 interface VerifyJwtResponseInterface extends ErrorInterface {
-  expire: number;
-  menus: Menu[];
+  expired: boolean;
+  user: User;
+  expiresIn: number;
 }
 
 interface LogoutResponseInterface extends ErrorInterface {
   logout: boolean;
+}
+
+interface RegisterInterface extends ErrorInterface {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface RegisterResponseInterface extends ErrorInterface {
+  user: User;
+  expire: number;
 }
 
 export const authAPI = {
@@ -73,6 +84,28 @@ export const authAPI = {
       .catch(() => ({
         error: "Error",
         message: "Ocorreu um erro, por favor reinicie a página",
+      }));
+  },
+
+  register: async (
+    data: RegisterInterface
+  ): Promise<RegisterResponseInterface> => {
+    return await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then(async (res) => {
+        return res.json().then((data) => {
+          return data;
+        });
+      })
+      .catch(() => ({
+        error: "Error",
+        message: "Error, please try again.",
       }));
   },
 };

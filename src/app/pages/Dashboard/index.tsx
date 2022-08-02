@@ -49,6 +49,7 @@ const Dashboard = () => {
                   {dailyChallenge &&
                     dailyChallenge?.images?.map((img) => (
                       <Image
+                        key={img.id}
                         {...img}
                         url={
                           "https://i.pinimg.com/736x/dc/72/1d/dc721d7fa5c22bb8551afdf9cc280401.jpg"
@@ -84,8 +85,10 @@ const Dashboard = () => {
               </Select>
             </div>
             {challenges && !challengesLoading && !challengesError
-              ? challenges.map((challenge) => <Card {...challenge} />)
-              : [1, 2, 3, 4].map(() => <Card loading />)}
+              ? challenges.map((challenge) => (
+                  <Card key={challenge.id} {...challenge} />
+                ))
+              : [1, 2, 3, 4].map((_, i) => <Card key={i} loading />)}
           </div>
         </div>
       </Cover>

@@ -19,41 +19,38 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../utils/context/auth";
 import TextInput from "../TextInput";
 
-const user = {
-  name: "Tom Cook",
-  email: "tom@example.com",
-  imageUrl:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-};
-
-const userNavigation = [
-  { name: "Your Profile", href: "#" },
-  { name: "Settings", href: "#" },
-  { name: "Sign out", href: "#" },
-];
-
 export default function LayoutBase() {
   const [navigation, setNavigation] = useState([
     { name: "Dashboard", href: "/", current: true },
     { name: "Ranking", href: "ranking", current: false },
     { name: "Create Challenge", href: "challenge", current: false },
   ]);
-  const { user: userIntern, logout, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout, login, register, checkingSession } =
+    useAuth();
   const navigate = useNavigate();
+  const [modal, setModal] = useState<string | null>(null);
+  const [email, setEmail] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
 
-  const handleLogout = useCallback(() => {
-    logout();
-  }, []);
+  const handleLogin = () => {
+    login(email, password);
+  };
 
-  const userNavigation = [
-    {
-      name: "Perfil",
-      href: "",
-      function: () =>
-        handleNavigation({ name: "Configurações", href: "/app/configuracoes" }),
-    },
-    { name: "Sair", href: "", function: () => handleLogout() },
-  ];
+  useEffect(() => {
+    if (user) {
+      modal && setModal(null);
+      email.length && setEmail("");
+      username.length && setUsername("");
+      password.length && setPassword("");
+      confirmPassword.length && setConfirmPassword("");
+    }
+  }, [user]);
+
+  const handleRegister = () => {
+    register(email, username, password, confirmPassword);
+  };
 
   const handleNavigation = (item: any) => {
     setNavigation(
@@ -211,13 +208,14 @@ export default function LayoutBase() {
                           <BellIcon className="h-6 w-6" aria-hidden="true" />
                         </button> */}
 
-                        {isAuthenticated ? (
+                        {isAuthenticated && user ? (
                           <>
                             <p className="text-white dark:text-gray-300 ml-2">
-                              {user.name}
+                              {user.username}
                             </p>
                             <button
                               type="button"
+                              onClick={() => logout()}
                               className="ml-auto bg-indigo-600 dark:bg-gray-800 flex-shrink-0 rounded-full p-1 text-indigo-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white"
                             >
                               <span className="sr-only">Logout</span>
@@ -229,10 +227,16 @@ export default function LayoutBase() {
                           </>
                         ) : (
                           <>
-                            <button className="btn btn-sm btn-secondary mx-3">
+                            <button
+                              onClick={() => setModal("Login")}
+                              className="btn btn-sm btn-secondary mx-3"
+                            >
                               Sign in
                             </button>
-                            <button className="btn btn-sm btn-accent btn-outline">
+                            <button
+                              onClick={() => setModal("Register")}
+                              className="btn btn-sm btn-accent btn-outline"
+                            >
                               Sign up
                             </button>
                           </>
@@ -252,12 +256,12 @@ export default function LayoutBase() {
                   </div>
                   <div className="pt-4 pb-3 border-t border-indigo-700 dark:border-gray-300">
                     <div className="px-5 flex items-center">
-                      {isAuthenticated ? (
+                      {isAuthenticated && user ? (
                         <>
                           <div className="ml-3">
                             <div className="text-base font-medium text-white">
                               <p className="text-white dark:text-gray-300 ml-2">
-                                {user.name}
+                                {user.username}
                               </p>
                             </div>
                           </div>
@@ -271,6 +275,7 @@ export default function LayoutBase() {
                       </button> */}
                           <button
                             type="button"
+                            onClick={() => logout()}
                             className="ml-auto bg-indigo-600 dark:bg-gray-800 flex-shrink-0 rounded-full p-1 text-indigo-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white"
                           >
                             <span className="sr-only">Logout</span>
@@ -282,10 +287,16 @@ export default function LayoutBase() {
                         </>
                       ) : (
                         <>
-                          <button className="btn btn-sm btn-secondary mx-3">
+                          <button
+                            onClick={() => setModal("Login")}
+                            className="btn btn-sm btn-secondary mx-3"
+                          >
                             Sign in
                           </button>
-                          <button className="btn btn-sm btn-accent btn-outline">
+                          <button
+                            onClick={() => setModal("Register")}
+                            className="btn btn-sm btn-accent btn-outline"
+                          >
                             Sign up
                           </button>
                         </>
@@ -310,6 +321,99 @@ export default function LayoutBase() {
             <Outlet />
 
             {/* /End replace */}
+            {modal && !isAuthenticated && (
+              <div className={classNames("modal", modal ? "modal-open" : "")}>
+                <div className="modal-box relative">
+                  <label
+                    htmlFor="my-modal-3"
+                    className="btn btn-sm btn-circle absolute right-2 top-2"
+                    onClick={() => setModal(null)}
+                  >
+                    ✕
+                  </label>
+
+                  <div className="card-body">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Email</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Email"
+                        className="input input-bordered"
+                        onChange={(e) => setEmail(e.target.value)}
+                        value={email}
+                      />
+                    </div>
+                    {modal === "Register" && (
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Username</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Username"
+                          className="input input-bordered"
+                          onChange={(e) => setUsername(e.target.value)}
+                          value={username}
+                        />
+                      </div>
+                    )}
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Password</span>
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Password"
+                        className="input input-bordered"
+                        onChange={(e) => setPassword(e.target.value)}
+                        value={password}
+                      />
+                      {modal === "Login" && (
+                        <label className="label">
+                          <p className="label-text-alt link link-hover cursor-pointer">
+                            Forgot password?
+                          </p>
+                        </label>
+                      )}
+                    </div>
+                    {modal === "Register" && (
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Confirm Password</span>
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="Confirm Password"
+                          className="input input-bordered"
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          value={confirmPassword}
+                        />
+                      </div>
+                    )}
+                    <div className="form-control mt-6">
+                      <button
+                        disabled={!!checkingSession}
+                        onClick={() => {
+                          if (checkingSession) {
+                            return;
+                          }
+                          if (modal === "Login") {
+                            handleLogin();
+                          } else {
+                            handleRegister();
+                          }
+                        }}
+                        className="btn btn-primary"
+                      >
+                        {checkingSession ? "Loading..." : modal}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>

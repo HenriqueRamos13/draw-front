@@ -3,21 +3,27 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { authAPI, Menu } from "../../api/auth.api";
 import { ToastContainer, toast, ToastOptions } from "react-toastify";
 import { User } from "../interfaces/models";
+import { userAPI } from "../../api/user.api";
+import { votesAPI } from "../../api/votes.api";
 
 export interface AuthContextInterface {
   checkingSession: boolean | null;
   expiresAt: number | null;
   isAuthenticated: boolean | null;
   user: User | null;
-  menus: Menu[];
   likes: string[];
   setLikes: (value: string[]) => void;
-  setMenus: (value: Menu[]) => void;
   setUser: (value: any) => void;
   setCheckingSession: (value: boolean) => void;
   setExpiresAt: (value: number) => void;
   setIsAuthenticated: (value: boolean) => void;
   login: (email: string, password: string) => void;
+  register: (
+    email: string,
+    username: string,
+    password: string,
+    confirmPassword: string
+  ) => void;
   logout: () => void;
   notification: (content: string, options: ToastOptions) => React.ReactText;
 }
@@ -27,15 +33,14 @@ export const authContextDefaults: AuthContextInterface = {
   expiresAt: null,
   isAuthenticated: false,
   user: null,
-  menus: [],
   likes: [],
   setLikes: () => {},
-  setMenus: () => {},
   setUser: () => {},
   setCheckingSession: () => {},
   setExpiresAt: () => {},
   setIsAuthenticated: () => {},
   login: () => {},
+  register: () => {},
   logout: () => {},
   notification: () => "",
 };
@@ -49,7 +54,6 @@ export const AuthProvider: React.FC = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(false);
   const [user, setUser] = useState<User | null>(null);
   const [likes, setLikes] = useState<string[]>([]);
-  const [menus, setMenus] = useState<Menu[]>([]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,25 +63,37 @@ export const AuthProvider: React.FC = ({ children }) => {
     options: ToastOptions
   ): React.ReactText => toast(content, options);
 
+  const getVotes = async () => {
+    const { data, error, message } = await votesAPI.allVotes();
+
+    if (error && message) {
+      return notification(message, { type: "error" });
+    }
+
+    setLikes(Object.assign([], data));
+
+    return;
+  };
+
   const handleAuthentication = async (): Promise<void> => {
-    const { expire, menus, error, message, statusCode } =
+    const { expired, user, expiresIn, error, message } =
       await authAPI.verifyJwt();
 
     try {
-      if (user && expire) {
+      if (user && !expired) {
         window.localStorage.setItem("@user", JSON.stringify(user));
-        window.localStorage.setItem("@expire", expire.toString());
+        window.localStorage.setItem("@expire", expiresIn.toString());
 
         setUser(user);
-        setExpiresAt(expire);
+        setExpiresAt(expiresIn);
         setCheckingSession(false);
-        setMenus(Object.assign([], menus));
         setIsAuthenticated(true);
-        navigate("/app", { replace: true });
+        getVotes();
+        // navigate("/app", { replace: true });
         return;
       }
 
-      if (error || !expire) {
+      if (error || expired) {
         setCheckingSession(false);
         setIsAuthenticated(false);
         navigate("/", { replace: true });
@@ -99,8 +115,8 @@ export const AuthProvider: React.FC = ({ children }) => {
         setExpiresAt(expireCached);
         setCheckingSession(false);
         setIsAuthenticated(true);
-        setMenus(Object.assign([], menus));
-        navigate("/app", { replace: true });
+        getVotes();
+        // navigate("/app", { replace: true });
       }
     } catch (error) {
       setCheckingSession(false);
@@ -111,22 +127,24 @@ export const AuthProvider: React.FC = ({ children }) => {
 
     // setCheckingSession(false);
     // setIsAuthenticated(true);
-    // setMenus(Object.assign([], menus));
+
     // navigate("/app", { replace: true });
   };
 
   const login = async (email: string, password: string) => {
     if (email.trim() === "" || password.trim() === "") {
-      return notification("Preencha todos os campos", { type: "warning" });
+      return notification("Fill in all fields.", { type: "warning" });
     }
 
-    const { user, expire, menus, error, message, statusCode } =
-      await authAPI.login({
-        email,
-        password,
-      });
+    setCheckingSession(true);
+
+    const { user, expire, error, message, statusCode } = await authAPI.login({
+      email,
+      password,
+    });
 
     if (error) {
+      setCheckingSession(false);
       return notification(message ?? error, { type: "warning" });
     }
 
@@ -137,15 +155,85 @@ export const AuthProvider: React.FC = ({ children }) => {
       setUser(user);
       setExpiresAt(expire || null);
       setCheckingSession(false);
-      setMenus(Object.assign([], menus));
       setIsAuthenticated(true);
-      navigate("/app", { replace: true });
+      getVotes();
+      // navigate("/", { replace: true });
 
       return;
     } catch (error) {
+      setCheckingSession(false);
+      logout();
+      return notification("Fail to login. Try again.", { type: "warning" });
+    }
+  };
+
+  const register = async (
+    email: string,
+    username: string,
+    password: string,
+    confirmPassword: string
+  ) => {
+    if (
+      email.trim() === "" ||
+      password.trim() === "" ||
+      username.trim() === "" ||
+      confirmPassword.trim() === ""
+    ) {
+      return notification("Fill in all fields.", { type: "warning" });
+    }
+
+    if (password !== confirmPassword) {
+      return notification("The passwords dont match.", { type: "warning" });
+    }
+
+    if (password.length < 8 || password.length > 80) {
+      return notification("Password must be between 8 and 80 characters.", {
+        type: "warning",
+      });
+    }
+
+    if (email.length > 170) {
+      return notification("Email must be less than 170 characters.", {
+        type: "warning",
+      });
+    }
+
+    if (username.length < 4 || username.length > 16) {
+      return notification("Username must be between 4 and 16 characters.", {
+        type: "warning",
+      });
+    }
+
+    setCheckingSession(true);
+
+    const { user, expire, error, message } = await authAPI.register({
+      email,
+      password,
+      username,
+    });
+
+    if (error) {
+      setCheckingSession(false);
+      return notification(message ?? error, { type: "error" });
+    }
+
+    try {
+      window.localStorage.setItem("@user", JSON.stringify(user));
+      window.localStorage.setItem("@expire", JSON.stringify(expire));
+
+      setUser(user);
+      setExpiresAt(expire || null);
+      setCheckingSession(false);
+      setIsAuthenticated(true);
+      setLikes([]);
+      // navigate("/app", { replace: true });
+
+      return notification("Account created!", { type: "success" });
+    } catch (error) {
+      setCheckingSession(false);
       logout();
       return notification(
-        "Erro ao salvar dados localmente. Faça o login novamente",
+        "Error while registering. Try again later or contact the administrator.",
         { type: "warning" }
       );
     }
@@ -181,11 +269,12 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       setExpiresAt(null);
       setIsAuthenticated(false);
+      setLikes(Object.assign([], []));
       navigate("/", { replace: true });
 
       return;
     } catch (error) {
-      return { error: "Erro ao fazer logout" };
+      return { error: "Log out error" };
     }
   };
 
@@ -223,12 +312,11 @@ export const AuthProvider: React.FC = ({ children }) => {
           login,
           logout,
           likes,
+          register,
           setLikes,
           user,
           setUser,
           notification,
-          menus,
-          setMenus,
         } as AuthContextInterface
       }
     >

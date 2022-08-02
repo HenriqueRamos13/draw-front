@@ -1,5 +1,6 @@
 import { API_URL } from "../utils/api";
 import { ErrorInterface } from "../utils/interfaces/error.interface";
+import { User } from "../utils/interfaces/models";
 
 interface ForgotPassDto {
   email: string;
@@ -35,7 +36,7 @@ export const userAPI = {
       })
       .catch(() => ({
         error: "Error",
-        message: "Ocorreu um erro, por favor reinicie a página",
+        message: "Error, please try again.",
       }));
   },
 
@@ -59,7 +60,7 @@ export const userAPI = {
       })
       .catch(() => ({
         error: "Error",
-        message: "Ocorreu um erro, por favor reinicie a página",
+        message: "Error, please try again.",
       }));
   },
 
@@ -80,7 +81,7 @@ export const userAPI = {
       })
       .catch(() => ({
         error: "Error",
-        message: "Ocorreu um erro, por favor reinicie a página",
+        message: "Error, please try again.",
       }));
   },
 };
