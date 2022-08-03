@@ -56,13 +56,7 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 justify-items-center">
                   {dailyChallenge &&
                     dailyChallenge?.images?.map((img) => (
-                      <Image
-                        key={img.id}
-                        {...img}
-                        url={
-                          "https://i.pinimg.com/736x/dc/72/1d/dc721d7fa5c22bb8551afdf9cc280401.jpg"
-                        }
-                      />
+                      <Image key={img.id} {...img} />
                     ))}
                 </div>
               </>

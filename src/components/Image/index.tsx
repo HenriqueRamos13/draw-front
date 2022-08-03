@@ -7,7 +7,13 @@ import { API_URL } from "../../utils/api";
 import { useAuth } from "../../utils/context/auth";
 import { Image } from "../../utils/interfaces/models";
 
-const ImageComponent: React.FC<Image> = ({ url, id, votes, user }) => {
+const ImageComponent: React.FC<Image> = ({
+  url,
+  id,
+  votes,
+  user,
+  total_votes,
+}) => {
   const { isAuthenticated, likes, setLikes } = useAuth();
   const navigate = useNavigate();
 
@@ -42,23 +48,28 @@ const ImageComponent: React.FC<Image> = ({ url, id, votes, user }) => {
   };
 
   return (
-    <div className="card card-compact w-[80%] bg-base-100 shadow-xl">
+    <div className="card card-compact w-full h-fit  bg-base-100 shadow-xl break-inside mb-6">
       <figure>
         <img
           src={url}
           alt="art"
-          className="w-full h-full object-fill rounded-lg"
+          className="w-full h-full object-fill rounded-lg max-h-[500px]"
         />
       </figure>
       <div className="card-body">
         <div className=" w-full rounded-lg h-[50px] flex flex-row justify-between p-5 items-center prose">
-          <b>{user?.username}</b>
+          <b
+            className="link"
+            onClick={() => navigate(`/user/${user?.username}`)}
+          >
+            {user?.username}
+          </b>
           <button
             onClick={() => (isAuthenticated ? like(id) : {})}
             className="flex flex-row"
           >
             <b className="mr-2">
-              {liked && votes ? votes?.length + 1 : votes?.length} Votes
+              {liked ? total_votes + 1 : total_votes} Votes
             </b>
             {liked ? (
               <HeartIcon color="#F00" width={26} height={26} />

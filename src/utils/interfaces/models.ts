@@ -66,6 +66,7 @@ export type User = {
   points: number;
   roles: Role;
   created_at: Date;
+  images?: Image[] | null;
   updatedAt: Date;
   deleted: boolean;
 };
