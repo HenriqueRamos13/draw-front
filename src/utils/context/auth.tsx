@@ -49,7 +49,7 @@ export const AuthContext =
   createContext<AuthContextInterface>(authContextDefaults);
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [checkingSession, setCheckingSession] = useState<boolean | null>(true);
+  const [checkingSession, setCheckingSession] = useState<boolean | null>(false);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(false);
   const [user, setUser] = useState<User | null>(null);
